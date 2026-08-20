@@ -1,0 +1,55 @@
+name: Bootstrap / Update Loto6 Data
+
+on:
+  workflow_dispatch:
+    inputs:
+      bootstrap:
+        description: "第1回から全データを再構築"
+        required: false
+        default: false
+        type: boolean
+
+  schedule:
+    - cron: "30 20 * * 1,4"
+      timezone: "Asia/Tokyo"
+    - cron: "30 22 * * 1,4"
+      timezone: "Asia/Tokyo"
+
+permissions:
+  contents: write
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Bootstrap all Loto6 data
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.bootstrap }}
+        run: python scripts/update_data.py --bootstrap
+
+      - name: Update Loto6 data
+        if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.bootstrap) }}
+        run: python scripts/update_data.py
+
+      - name: Commit updated data
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add data/loto6.json data/metadata.json
+          if git diff --cached --quiet; then
+            echo "No changes"
+          else
+            git commit -m "Update Loto6 data"
+            git push
+          fi
