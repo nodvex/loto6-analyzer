@@ -1,0 +1,8 @@
+{
+  "name": "LOTO6 Analyzer",
+  "short_name": "LOTO6",
+  "start_url": "./",
+  "display": "standalone",
+  "background_color": "#090b10",
+  "theme_color": "#090b10"
+}
